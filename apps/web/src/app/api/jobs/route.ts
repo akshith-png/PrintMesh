@@ -1,41 +1,99 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { env } from "@/lib/env";
+import { env, hasSupabaseConfig } from "@/lib/env";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const uploadSchema = z.object({
+const optionsSchema = z.object({
   copies: z.coerce.number().int().min(1).max(100).default(1),
   colorMode: z.enum(["BW", "COLOR"]).default("BW"),
   duplex: z.coerce.boolean().default(false),
   paperSize: z.enum(["A4", "A3", "LETTER"]).default("A4"),
 });
 
-export async function POST(request: Request) {
-  const form = await request.formData();
-  const file = form.get("file");
-  if (!(file instanceof File)) return NextResponse.json({ error: "PDF file is required." }, { status: 400 });
-  if (file.type !== "application/pdf") return NextResponse.json({ error: "Only application/pdf is accepted." }, { status: 400 });
-  if (file.size > env.PRINTMESH_MAX_UPLOAD_BYTES) return NextResponse.json({ error: "PDF exceeds the configured size limit." }, { status: 413 });
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const signature = new TextDecoder().decode(bytes.slice(0, 5));
-  if (signature !== "%PDF-") return NextResponse.json({ error: "Invalid PDF signature." }, { status: 400 });
-  const options = uploadSchema.parse({
-    copies: form.get("copies") ?? 1,
-    colorMode: form.get("colorMode") ?? "BW",
-    duplex: form.get("duplex") ?? false,
-    paperSize: form.get("paperSize") ?? "A4",
-  });
-  return NextResponse.json({
-    status: "ACCEPTED_FOR_BACKEND",
-    originalFilename: file.name,
-    sizeBytes: file.size,
-    options,
-    message: "Supabase persistence is wired in Block 1; job persistence is enabled in the next backend implementation block.",
-  }, { status: 202 });
+function safeFilename(name: string) {
+  const cleaned = name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return cleaned.toLowerCase().endsWith(".pdf") ? cleaned : `${cleaned}.pdf`;
 }
 
-export async function GET() {
-  return NextResponse.json({ jobs: [], message: "Job listing is enabled after Supabase persistence is connected." });
+export async function POST(request: Request) {
+  try {
+    const form = await request.formData();
+    const file = form.get("file");
+    if (!(file instanceof File)) return NextResponse.json({ error: "PDF file is required." }, { status: 400 });
+    if (file.type !== "application/pdf") return NextResponse.json({ error: "Only application/pdf is accepted." }, { status: 400 });
+    if (file.size <= 0) return NextResponse.json({ error: "The PDF is empty." }, { status: 400 });
+    if (file.size > env.PRINTMESH_MAX_UPLOAD_BYTES) return NextResponse.json({ error: "PDF exceeds the configured size limit." }, { status: 413 });
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const signature = new TextDecoder().decode(bytes.slice(0, 5));
+    if (signature !== "%PDF-") return NextResponse.json({ error: "Invalid PDF signature." }, { status: 400 });
+
+    const options = optionsSchema.parse({
+      copies: form.get("copies") ?? 1,
+      colorMode: form.get("colorMode") ?? "BW",
+      duplex: form.get("duplex") ?? false,
+      paperSize: form.get("paperSize") ?? "A4",
+    });
+
+    const merchantId = String(form.get("merchantId") ?? "").trim();
+    if (!merchantId || !z.string().uuid().safeParse(merchantId).success) {
+      return NextResponse.json({ error: "A valid merchantId is required." }, { status: 400 });
+    }
+
+    if (!hasSupabaseConfig() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({
+        status: "VALIDATED_DEV_ONLY",
+        originalFilename: file.name,
+        sizeBytes: file.size,
+        options,
+        message: "PDF validation passed. Configure Supabase environment variables to persist the job."
+      }, { status: 202 });
+    }
+
+    const supabase = createSupabaseAdminClient();
+    const cleanName = safeFilename(file.name);
+    const jobSeed = crypto.randomUUID();
+    const storagePath = `${merchantId}/${jobSeed}/${cleanName}`;
+
+    const { data: merchant, error: merchantError } = await supabase
+      .from("merchants").select("id,name").eq("id", merchantId).single();
+    if (merchantError || !merchant) return NextResponse.json({ error: "Merchant not found." }, { status: 404 });
+
+    const { error: uploadError } = await supabase.storage
+      .from("print-files").upload(storagePath, bytes, {
+        contentType: "application/pdf",
+        upsert: false,
+      });
+    if (uploadError) return NextResponse.json({ error: `Storage upload failed: ${uploadError.message}` }, { status: 502 });
+
+    const { data: jobId, error: rpcError } = await supabase.rpc("create_customer_print_job", {
+      p_merchant_id: merchantId,
+      p_original_filename: file.name,
+      p_storage_path: storagePath,
+      p_size_bytes: file.size,
+      p_copies: options.copies,
+      p_color_mode: options.colorMode,
+      p_duplex: options.duplex,
+      p_paper_size: options.paperSize,
+    });
+
+    if (rpcError || !jobId) {
+      await supabase.storage.from("print-files").remove([storagePath]);
+      return NextResponse.json({ error: `Job creation failed: ${rpcError?.message ?? "Unknown error"}` }, { status: 502 });
+    }
+
+    return NextResponse.json({
+      status: "UPLOADED",
+      jobId,
+      merchant: merchant.name,
+      originalFilename: file.name,
+      sizeBytes: file.size,
+      options,
+    }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Upload failed." }, { status: 400 });
+  }
 }
