@@ -1,10 +1,10 @@
-﻿# Printing Network
+﻿# PrintMesh
 
-Real-time local printing network: customer browser -> backend -> print queue -> Windows print agent -> physical printer.
+Real-time local PrintMesh: customer browser -> backend -> print queue -> Windows print agent -> physical printer.
 
 ## Repository
 
-This is a private monorepo for the Printing Network V1 platform.
+This is a private monorepo for the PrintMesh V1 platform.
 
 ## Development
 
@@ -21,3 +21,4 @@ Development is local-first. GitHub is used for source control, backup, and CI/CD
 ## Security
 
 Never commit secrets, customer documents, production database contents, or private uploaded PDFs.
+

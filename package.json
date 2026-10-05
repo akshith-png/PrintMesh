@@ -1,6 +1,6 @@
 ﻿{
     "version":  "0.1.0",
-    "name":  "printing-network",
+    "name": "printmesh",
     "description":  "Real-time local printing network",
     "scripts":  {
                     "test":  "node -e \"console.log(\u0027Test runner placeholder: OK\u0027)\"",
@@ -13,3 +13,4 @@
                    ],
     "private":  true
 }
+
