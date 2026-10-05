@@ -1,69 +1,44 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { FormEvent, useState } from "react";
 
 export default function Home() {
+  const [file, setFile] = useState<File | null>(null);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!file) { setMessage("Choose a PDF first."); return; }
+    setBusy(true);
+    setMessage("");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("copies", "1");
+    form.append("colorMode", "BW");
+    form.append("duplex", "false");
+    form.append("paperSize", "A4");
+    try {
+      const response = await fetch("/api/jobs", { method: "POST", body: form });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Upload failed.");
+      setMessage(`PDF accepted: ${data.originalFilename} (${data.sizeBytes} bytes)`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main style={{ maxWidth: 760, margin: "0 auto", padding: 40, fontFamily: "Arial, sans-serif" }}>
+      <h1>PrintMesh</h1>
+      <p>Local print-network V1 foundation.</p>
+      <form onSubmit={submit} style={{ display: "grid", gap: 16, padding: 24, border: "1px solid #ddd", borderRadius: 12 }}>
+        <label>PDF file<input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} style={{ display: "block", marginTop: 8 }} /></label>
+        <button type="submit" disabled={busy} style={{ padding: "12px 18px", cursor: busy ? "wait" : "pointer" }}>{busy ? "Uploading..." : "Submit Print Job"}</button>
+        {message && <p>{message}</p>}
+      </form>
+    </main>
   );
 }

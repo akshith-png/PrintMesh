@@ -1,2 +1,7 @@
 <Solution>
+  <Folder Name="/services/" />
+  <Folder Name="/services/print-agent/">
+    <Project Path="services/print-agent/PrintMesh.Agent.Tests/PrintMesh.Agent.Tests.csproj" />
+    <Project Path="services/print-agent/PrintMesh.Agent/PrintMesh.Agent.csproj" />
+  </Folder>
 </Solution>
