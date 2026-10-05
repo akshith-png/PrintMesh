@@ -23,9 +23,12 @@ export default function TrackPage() {
   }, [params.jobId]);
 
   useEffect(() => {
-    void load();
-    const timer = setInterval(() => void load(), 3000);
-    return () => clearInterval(timer);
+    const initial = window.setTimeout(() => void load(), 0);
+    const timer = window.setInterval(() => void load(), 3000);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(timer);
+    };
   }, [load]);
 
   if (error) return <main className="shell"><section className="card"><h1>Print job</h1><p className="message">{error}</p></section></main>;
