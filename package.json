@@ -1,0 +1,15 @@
+﻿{
+    "version":  "0.1.0",
+    "name":  "printing-network",
+    "description":  "Real-time local printing network",
+    "scripts":  {
+                    "test":  "node -e \"console.log(\u0027Test runner placeholder: OK\u0027)\"",
+                    "build":  "node -e \"console.log(\u0027Build placeholder: OK\u0027)\"",
+                    "check":  "node -e \"console.log(\u0027Printing Network foundation check: OK\u0027)\""
+                },
+    "workspaces":  [
+                       "apps/*",
+                       "packages/*"
+                   ],
+    "private":  true
+}
