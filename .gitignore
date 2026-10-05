@@ -11,3 +11,5 @@ obj/
 coverage/
 .DS_Store
 Thumbs.db
+
+apps/web/.env.local
