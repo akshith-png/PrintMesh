@@ -14,6 +14,7 @@ const optionsSchema = z.object({
   duplex: z.coerce.boolean().default(false),
   paperSize: z.enum(["A4", "A3", "LETTER"]).default("A4"),
 });
+const idempotencyKeySchema = z.string().uuid();
 
 function safeFilename(name: string) {
   const cleaned = name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -62,14 +63,37 @@ export async function POST(request: Request) {
       }, { status: 202 });
     }
 
+    const requestedIdempotencyKey = request.headers.get("idempotency-key")?.trim();
+    if (requestedIdempotencyKey && !idempotencyKeySchema.safeParse(requestedIdempotencyKey).success) {
+      return NextResponse.json({ error: "Idempotency-Key must be a UUID." }, { status: 400 });
+    }
+
     const supabase = createSupabaseAdminClient();
     const cleanName = safeFilename(file.name);
-    const jobSeed = crypto.randomUUID();
+    const jobSeed = requestedIdempotencyKey ?? crypto.randomUUID();
     const storagePath = `${merchantId}/${jobSeed}/${cleanName}`;
 
     const { data: merchant, error: merchantError } = await supabase
       .from("merchants").select("id,name").eq("id", merchantId).single();
     if (merchantError || !merchant) return NextResponse.json({ error: "Merchant not found." }, { status: 404 });
+
+    if (requestedIdempotencyKey) {
+      const { data: existingJob, error: existingJobError } = await supabase
+        .from("print_jobs")
+        .select("id,status,merchant_id,print_files(original_filename,size_bytes)")
+        .eq("merchant_id", merchantId)
+        .eq("idempotency_key", requestedIdempotencyKey)
+        .maybeSingle();
+      if (existingJobError) return NextResponse.json({ error: existingJobError.message }, { status: 502 });
+      if (existingJob) {
+        return NextResponse.json({
+          status: existingJob.status,
+          jobId: existingJob.id,
+          merchant: merchant.name,
+          idempotentReplay: true,
+        }, { status: 200 });
+      }
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("print-files").upload(storagePath, bytes, {
