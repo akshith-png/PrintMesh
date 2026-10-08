@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { env, hasSupabaseConfig } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
       p_original_filename: file.name,
       p_storage_path: storagePath,
       p_size_bytes: file.size,
+      p_sha256: createHash("sha256").update(bytes).digest("hex"),
+      p_idempotency_key: jobSeed,
       p_copies: options.copies,
       p_color_mode: options.colorMode,
       p_duplex: options.duplex,
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      status: "UPLOADED",
+      status: "QUEUED",
       jobId,
       merchant: merchant.name,
       originalFilename: file.name,

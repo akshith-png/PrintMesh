@@ -1,37 +1,67 @@
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace PrintMesh.Agent;
 
-public sealed class PdfPrinter
+public sealed record PrintRequest(
+    string JobId,
+    string PdfPath,
+    string PrinterName,
+    int Copies,
+    string ColorMode,
+    bool Duplex,
+    string PaperSize);
+
+public interface IPdfSpooler
 {
-    private readonly string _mode;
-    private readonly string _outputDirectory;
-    private readonly string? _printerName;
+    Task SendAsync(PrintRequest request, CancellationToken cancellationToken);
+}
 
-    public PdfPrinter(string mode, string outputDirectory, string? printerName)
+/// <summary>
+/// Hands a PDF to the installed Windows PDF handler, which in turn submits it to the Windows spooler.
+/// Windows acknowledges handoff, not paper delivery; physical-paper confirmation is deliberately Block 7 work.
+/// </summary>
+public sealed class WindowsPdfSpooler : IPdfSpooler
+{
+    public async Task SendAsync(PrintRequest request, CancellationToken cancellationToken)
     {
-        _mode = mode;
-        _outputDirectory = outputDirectory;
-        _printerName = printerName;
-    }
+        if (!OperatingSystem.IsWindows())
+            throw new PlatformNotSupportedException("The production PrintMesh spooler runs on Windows only.");
 
-    public async Task PrintAsync(string pdfPath, CancellationToken cancellationToken)
-    {
-        if (_mode.Equals("mock", StringComparison.OrdinalIgnoreCase))
-        {
-            Directory.CreateDirectory(_outputDirectory);
-            File.Copy(pdfPath, Path.Combine(_outputDirectory, Path.GetFileName(pdfPath)), true);
-            return;
-        }
+        if (!File.Exists(request.PdfPath))
+            throw new FileNotFoundException("The claimed PDF does not exist.", request.PdfPath);
 
         var info = new ProcessStartInfo
         {
-            FileName = pdfPath,
+            FileName = request.PdfPath,
             UseShellExecute = true,
-            Verb = string.IsNullOrWhiteSpace(_printerName) ? "print" : "printto",
-            Arguments = string.IsNullOrWhiteSpace(_printerName) ? string.Empty : $"\"{_printerName}\""
+            Verb = "printto",
+            Arguments = $"\"{request.PrinterName}\"",
         };
-        using var process = Process.Start(info) ?? throw new InvalidOperationException("Windows could not start the PDF print operation.");
-        await Task.Delay(1000, cancellationToken);
+
+        using var process = Process.Start(info)
+            ?? throw new InvalidOperationException("Windows could not start the PDF print operation.");
+
+        // Shell verbs return once the registered PDF application accepts the request. They cannot prove paper output.
+        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+    }
+}
+
+/// <summary>Test-only spooler boundary. It writes the PDF and requested options without requiring a printer.</summary>
+public sealed class FileCopySpooler(string outputDirectory) : IPdfSpooler
+{
+    public async Task SendAsync(PrintRequest request, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(outputDirectory);
+        var pdfDestination = Path.Combine(outputDirectory, $"{request.JobId}.pdf");
+        var manifestDestination = Path.Combine(outputDirectory, $"{request.JobId}.json");
+        await using (var source = File.OpenRead(request.PdfPath))
+        await using (var destination = File.Create(pdfDestination))
+            await source.CopyToAsync(destination, cancellationToken);
+
+        await File.WriteAllTextAsync(
+            manifestDestination,
+            JsonSerializer.Serialize(new { request.PrinterName, request.Copies, request.ColorMode, request.Duplex, request.PaperSize }),
+            cancellationToken);
     }
 }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
 
 type Job = {
   id: string;
@@ -22,6 +23,7 @@ type Agent = {
   name?: string | null;
   last_seen_at?: string | null;
   status?: string | null;
+  selected_windows_printer_name?: string | null;
 };
 
 export default async function MerchantDashboardPage() {
@@ -71,14 +73,14 @@ export default async function MerchantDashboardPage() {
         .order("name"),
       supabase
         .from("agent_instances")
-        .select("id,name,last_seen_at,status")
+        .select("id,name,last_seen_at,status,selected_windows_printer_name")
         .eq("merchant_id", membership.merchant_id)
         .order("last_seen_at", { ascending: false }),
     ]);
 
   const jobRows = (jobs ?? []) as Job[];
   const printerRows = (printers ?? []) as Printer[];
-const agentRows = (agents ?? []) as Agent[];
+  const agentRows = (agents ?? []) as Agent[];
   const queued = jobRows.filter((job) =>
     ["CREATED", "UPLOADED", "QUEUED", "CLAIMED"].includes(job.status)
   ).length;
@@ -193,6 +195,8 @@ const agentRows = (agents ?? []) as Agent[];
           <p className="eyebrow">AGENT</p>
           <h2>Windows agent</h2>
 
+          <AgentEnrollmentPanel />
+
           {agentRows.length === 0 ? (
             <p className="muted">No agent installation registered yet.</p>
           ) : (
@@ -209,6 +213,7 @@ const agentRows = (agents ?? []) as Agent[];
                           ? `Last seen ${new Date(agent.last_seen_at).toLocaleString()}`
                           : "Never connected"}
                       </span>
+                      {agent.selected_windows_printer_name && <span>Selected: {agent.selected_windows_printer_name}</span>}
                     </div>
                     <span className={online ? "online-dot" : "offline-dot"}>
                       {online ? "Online" : "Offline"}
