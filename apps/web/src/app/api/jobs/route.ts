@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     if (requestedIdempotencyKey) {
       const { data: existingJob, error: existingJobError } = await supabase
         .from("print_jobs")
-        .select("id,status,merchant_id,print_files(original_filename,size_bytes)")
+        .select("id,public_id,status,merchant_id,print_files(original_filename,size_bytes)")
         .eq("merchant_id", merchantId)
         .eq("idempotency_key", requestedIdempotencyKey)
         .maybeSingle();
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       if (existingJob) {
         return NextResponse.json({
           status: existingJob.status,
-          jobId: existingJob.id,
+          jobId: existingJob.public_id,
           merchant: merchant.name,
           idempotentReplay: true,
         }, { status: 200 });
@@ -120,9 +120,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Job creation failed: ${rpcError?.message ?? "Unknown error"}` }, { status: 502 });
     }
 
+    const { data: publicJob, error: publicJobError } = await supabase
+      .from("print_jobs")
+      .select("public_id,status")
+      .eq("id", jobId)
+      .single();
+    if (publicJobError || !publicJob) return NextResponse.json({ error: "Job was created but could not be loaded." }, { status: 502 });
+
     return NextResponse.json({
-      status: "QUEUED",
-      jobId,
+      status: publicJob.status,
+      jobId: publicJob.public_id,
       merchant: merchant.name,
       originalFilename: file.name,
       sizeBytes: file.size,

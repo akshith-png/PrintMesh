@@ -5,7 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const idSchema = z.string().uuid();
+const idSchema = z.union([z.string().uuid(), z.string().regex(/^pmj_[a-f0-9]{32}$/)]);
 
 export async function GET(_request: Request, context: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await context.params;
@@ -15,18 +15,19 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
   }
 
   const supabase = createSupabaseAdminClient();
-  const { data: job, error } = await supabase
+  const jobQuery = supabase
     .from("print_jobs")
-    .select("id,merchant_id,status,copies,color_mode,duplex,paper_size,created_at,updated_at,print_files(original_filename,size_bytes,mime_type)")
-    .eq("id", jobId)
-    .single();
+    .select("id,public_id,merchant_id,status,copies,color_mode,duplex,paper_size,created_at,updated_at,print_files(original_filename,size_bytes,mime_type)");
+  const { data: job, error } = await (jobId.startsWith("pmj_")
+    ? jobQuery.eq("public_id", jobId)
+    : jobQuery.eq("id", jobId)).single();
 
   if (error || !job) return NextResponse.json({ error: "Job not found." }, { status: 404 });
 
   const { data: events } = await supabase
     .from("print_job_events")
     .select("id,status,message,created_at")
-    .eq("job_id", jobId)
+    .eq("job_id", job.id)
     .order("created_at", { ascending: true });
 
   return NextResponse.json({ job, events: events ?? [] });
