@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
+import QRCode from "qrcode";
 
 type Job = {
   id: string;
@@ -87,6 +88,8 @@ export default async function MerchantDashboardPage() {
 
   const printing = jobRows.filter((job) => job.status === "PRINTING").length;
   const completed = jobRows.filter((job) => job.status === "COMPLETED").length;
+  const publicUrl = `${process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/s/${membership.merchant_id}`;
+  const qrDataUrl = await QRCode.toDataURL(publicUrl, { width: 220, margin: 1 });
 
   return (
     <main className="page-shell">
@@ -124,6 +127,14 @@ export default async function MerchantDashboardPage() {
       </section>
 
       <section className="dashboard-grid">
+        <div className="card">
+          <p className="eyebrow">CUSTOMER QR</p>
+          <h2>Share your print link</h2>
+          {/* QR is generated server-side as a data URL so it works offline and has no third-party tracking. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qrDataUrl} alt="QR code for the customer print page" width={220} height={220} />
+          <p><a href={publicUrl}>{publicUrl}</a></p>
+        </div>
         <div className="card">
           <div className="section-heading">
             <div>
