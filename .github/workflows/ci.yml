@@ -1,0 +1,33 @@
+name: PrintMesh CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
+      SUPABASE_SERVICE_ROLE_KEY: service_role_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci
+      - run: npm --workspace apps/web run lint
+      - run: npm --workspace apps/web run typecheck
+      - run: npm test -- --run
+      - run: npm run build
+      - run: dotnet restore services/print-agent/PrintMesh.Agent.Tests/PrintMesh.Agent.Tests.csproj
+      - run: dotnet build services/print-agent/PrintMesh.Agent.Tests/PrintMesh.Agent.Tests.csproj --configuration Release --no-restore
+      - run: dotnet test services/print-agent/PrintMesh.Agent.Tests/PrintMesh.Agent.Tests.csproj --configuration Release --no-build
+      - run: git diff --check
