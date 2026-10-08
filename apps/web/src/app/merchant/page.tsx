@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
+import { PrinterSetupPanel } from "./PrinterSetupPanel";
 import QRCode from "qrcode";
 
 type Job = {
@@ -182,6 +183,7 @@ export default async function MerchantDashboardPage() {
         <div className="card">
           <p className="eyebrow">PRINTERS</p>
           <h2>Printer availability</h2>
+          <PrinterSetupPanel printers={printerRows.map((printer) => ({ name: printer.name, is_available: printer.is_available }))} />
 
           {printerRows.length === 0 ? (
             <p className="muted">No printers registered yet.</p>
