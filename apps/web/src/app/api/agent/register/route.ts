@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { agentRegistrationSchema } from "@/lib/agent-contract";
 import { issueOpaqueToken, sha256 } from "@/lib/agent-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { rateLimit, requestKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ type EnrollmentRow = {
 
 export async function POST(request: Request) {
   try {
+    const requestLimit = rateLimit(requestKey(request, "agent-register"), 5);
+    if (!requestLimit.allowed) return NextResponse.json({ error: "Too many registration attempts." }, { status: 429, headers: { "retry-after": String(requestLimit.retryAfterSeconds) } });
     const enrollmentToken = request.headers.get("x-printmesh-enrollment-token")?.trim();
     if (!enrollmentToken) return NextResponse.json({ error: "Enrollment token is required." }, { status: 401 });
 

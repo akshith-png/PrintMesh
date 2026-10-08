@@ -3,6 +3,7 @@ import { z } from "zod";
 import { issueOpaqueToken, sha256 } from "@/lib/agent-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { rateLimit, requestKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,8 @@ const requestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const requestLimit = rateLimit(requestKey(request, "merchant-enrollment"), 10);
+    if (!requestLimit.allowed) return NextResponse.json({ error: "Too many enrollment requests." }, { status: 429, headers: { "retry-after": String(requestLimit.retryAfterSeconds) } });
     const userClient = await createSupabaseServerClient();
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
