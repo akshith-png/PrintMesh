@@ -15,5 +15,11 @@ export const env = envSchema.parse({
 });
 
 export function hasSupabaseConfig() {
-  return Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(
+    env.NEXT_PUBLIC_SUPABASE_URL &&
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+      !env.NEXT_PUBLIC_SUPABASE_URL.includes("example.supabase.co") &&
+      !env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes("example") &&
+      !env.SUPABASE_SERVICE_ROLE_KEY?.includes("example"),
+  );
 }
