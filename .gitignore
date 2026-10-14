@@ -13,3 +13,5 @@ coverage/
 Thumbs.db
 
 apps/web/.env.local
+supabase/.temp/
+.supabase-types.tmp

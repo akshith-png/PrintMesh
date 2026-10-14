@@ -1,0 +1,10 @@
+project_id = "gscdkmadriaiwcbjkomp"
+
+[api]
+enabled = true
+
+[db]
+major_version = 17
+
+[storage]
+enabled = true
