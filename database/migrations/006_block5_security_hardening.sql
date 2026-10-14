@@ -68,7 +68,7 @@ create or replace function public.prune_old_job_events(retention_days integer de
 returns integer language plpgsql security definer set search_path = public as $$
 declare deleted_count integer;
 begin
-  delete from public.job_events where created_at < now() - make_interval(days => greatest(retention_days, 7));
+  delete from public.print_job_events where created_at < now() - make_interval(days => greatest(retention_days, 7));
   get diagnostics deleted_count = row_count;
   return deleted_count;
 end;

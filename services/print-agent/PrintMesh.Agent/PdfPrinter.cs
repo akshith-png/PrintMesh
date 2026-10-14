@@ -30,6 +30,8 @@ public sealed class WindowsPdfSpooler : IPdfSpooler
 
         if (!File.Exists(request.PdfPath))
             throw new FileNotFoundException("The claimed PDF does not exist.", request.PdfPath);
+        if (string.IsNullOrWhiteSpace(request.PrinterName) || request.PrinterName.Contains('"'))
+            throw new ArgumentException("The selected Windows printer name is invalid.", nameof(request));
 
         var info = new ProcessStartInfo
         {
@@ -42,8 +44,9 @@ public sealed class WindowsPdfSpooler : IPdfSpooler
         using var process = Process.Start(info)
             ?? throw new InvalidOperationException("Windows could not start the PDF print operation.");
 
-        // Shell verbs return once the registered PDF application accepts the request. They cannot prove paper output.
-        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        // Shell verbs return when the registered PDF application accepts the request.
+        // This is a spooler handoff signal, not proof that paper was delivered.
+        await process.WaitForExitAsync(cancellationToken);
     }
 }
 
