@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { env, hasSupabaseConfig } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { rateLimit, requestKey } from "@/lib/rate-limit";
+import { distributedRateLimit } from "@/lib/distributed-rate-limit";
+import { requestKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ function safeFilename(name: string) {
 
 export async function POST(request: Request) {
   try {
-    const requestLimit = rateLimit(requestKey(request, "customer-job"), 10);
+    const requestLimit = await distributedRateLimit(requestKey(request, "customer-job"), 10);
     if (!requestLimit.allowed) {
       return NextResponse.json({ error: "Too many upload attempts. Try again shortly." }, {
         status: 429,
