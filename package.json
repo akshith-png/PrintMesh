@@ -8,6 +8,7 @@
         "check": "npm --workspace apps/web run lint && npm --workspace apps/web run typecheck",
         "dev": "npm --workspace apps/web run dev",
         "agent": "dotnet run --project services/print-agent/PrintMesh.Agent"
+        ,"audit:production": "npm audit --omit=dev --audit-level=high"
     },
     "workspaces": [
         "apps/*",
