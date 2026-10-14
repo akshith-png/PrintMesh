@@ -6,7 +6,7 @@ namespace PrintMesh.Agent;
 
 public sealed record RemotePrinter(string Name, bool IsValid);
 public sealed record RegistrationResult(string AgentId, string AgentToken, int HeartbeatIntervalSeconds);
-public sealed record HeartbeatResult(string Status, string? SelectedPrinterId);
+public sealed record HeartbeatResult(string Status, string? SelectedPrinterId, string? SelectedPrinterName = null, string? DesiredPrinterName = null);
 public sealed record ClaimedPrintJob(
     string Id,
     string OriginalFilename,

@@ -5,6 +5,7 @@ export type AuthenticatedAgent = {
   id: string;
   merchantId: string;
   status: string;
+  selectedWindowsPrinterName: string | null;
 };
 
 type AgentRow = {
@@ -12,6 +13,7 @@ type AgentRow = {
   merchant_id: string | null;
   status: string;
   auth_secret_hash: string | null;
+  selected_windows_printer_name: string | null;
 };
 
 export function sha256(value: string | Uint8Array) {
@@ -46,7 +48,7 @@ export async function authenticateAgent(request: Request): Promise<Authenticated
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("agent_instances")
-    .select("id,merchant_id,status,auth_secret_hash")
+    .select("id,merchant_id,status,auth_secret_hash,selected_windows_printer_name")
     .eq("id", agentId)
     .maybeSingle();
 
@@ -54,5 +56,5 @@ export async function authenticateAgent(request: Request): Promise<Authenticated
   if (error || !agent || !agent.merchant_id || agent.status === "REVOKED") return null;
   if (!constantTimeMatches(agent.auth_secret_hash, secret)) return null;
 
-  return { id: agent.id, merchantId: agent.merchant_id, status: agent.status };
+  return { id: agent.id, merchantId: agent.merchant_id, status: agent.status, selectedWindowsPrinterName: agent.selected_windows_printer_name };
 }

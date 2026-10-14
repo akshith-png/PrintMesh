@@ -46,6 +46,11 @@ public sealed class AgentWorker
         var heartbeat = await AgentRetry.ExecuteAsync(
             token => _api.HeartbeatAsync(configuration, _machineName, _version, discovered.Select(printer => new RemotePrinter(printer.Name, printer.IsValid)).ToList(), token),
             cancellationToken);
+        if (!string.IsNullOrWhiteSpace(heartbeat.DesiredPrinterName) && discovered.Any(printer => printer.Name == heartbeat.DesiredPrinterName && printer.IsValid) && configuration.SelectedPrinterName != heartbeat.DesiredPrinterName)
+        {
+            configuration.SelectedPrinterName = heartbeat.DesiredPrinterName;
+            await _configurationStore.SaveAsync(configuration, cancellationToken);
+        }
         if (heartbeat.SelectedPrinterId is null) return "No valid selected Windows printer; queue polling skipped.";
 
         var job = await AgentRetry.ExecuteAsync(token => _api.ClaimNextJobAsync(configuration, token), cancellationToken);

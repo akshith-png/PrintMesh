@@ -56,7 +56,11 @@ export async function POST(request: Request) {
       syncedPrinters = (data ?? []) as PrinterRow[];
     }
 
-    const selected = syncedPrinters.find((printer) => printer.windows_printer_name === parsed.data.selectedWindowsPrinterName) ?? null;
+    const requestedByMerchant = agent.selectedWindowsPrinterName;
+    const selectedName = requestedByMerchant && syncedPrinters.some((printer) => printer.windows_printer_name === requestedByMerchant)
+      ? requestedByMerchant
+      : parsed.data.selectedWindowsPrinterName;
+    const selected = syncedPrinters.find((printer) => printer.windows_printer_name === selectedName) ?? null;
     const { error: agentError } = await supabase
       .from("agent_instances")
       .update({
@@ -64,7 +68,7 @@ export async function POST(request: Request) {
         version: parsed.data.version,
         status: "ONLINE",
         last_seen_at: now,
-        selected_windows_printer_name: parsed.data.selectedWindowsPrinterName,
+        selected_windows_printer_name: selected?.windows_printer_name ?? null,
         printer_id: selected?.id ?? null,
       })
       .eq("id", agent.id);
@@ -73,6 +77,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       status: "ONLINE",
       selectedPrinterId: selected?.id ?? null,
+      selectedPrinterName: selected?.windows_printer_name ?? null,
+      desiredPrinterName: selected?.windows_printer_name ?? null,
       printers: syncedPrinters.map((printer) => ({ id: printer.id, name: printer.windows_printer_name })),
     });
   } catch (error) {
