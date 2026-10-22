@@ -17,6 +17,7 @@ input[type=number],select{width:100%;padding:11px;border:1px solid #bbb;border-r
 .check input{width:18px;height:18px}
 button{border:0;border-radius:10px;padding:13px 18px;background:#111;color:#fff;font-weight:700;cursor:pointer}
 button:disabled{opacity:.55;cursor:wait}
+.hero-card{padding:48px 40px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.button{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:13px 18px;font-weight:700;text-decoration:none}.button.primary{background:#111;color:#fff}.button.secondary{border:1px solid #d7dbe0;color:#111;background:#fff}
 .message{padding:12px;border-radius:9px;background:#f0f1f3}
 .status{display:inline-block;margin:18px 0;padding:10px 15px;border-radius:999px;background:#111;color:#fff;font-weight:800}
 .timeline{padding-left:20px}.timeline li{display:grid;gap:3px;margin:16px 0}.timeline span,.timeline small{color:#666}
