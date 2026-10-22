@@ -2,8 +2,14 @@ import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export default async function Home() {
-  const admin = createSupabaseAdminClient();
-  const { data: stores } = await admin.from("merchants").select("public_id,name,address,phone").eq("status", "ACTIVE").order("name");
+  let stores: Array<{ public_id: string; name: string; address: string | null; phone: string | null }> = [];
+  try {
+    const admin = createSupabaseAdminClient();
+    const result = await admin.from("merchants").select("public_id,name,address,phone").eq("status", "ACTIVE").order("name");
+    stores = result.data ?? [];
+  } catch {
+    // Keep the public shell renderable while deployment secrets are configured.
+  }
 
   return (
     <main className="page-shell">
