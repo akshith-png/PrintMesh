@@ -1,23 +1,19 @@
-
 import Link from "next/link";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export default function Home() {
+export default async function Home() {
+  const admin = createSupabaseAdminClient();
+  const { data: stores } = await admin.from("merchants").select("public_id,name,address,phone").eq("status", "ACTIVE").order("name");
+
   return (
     <main className="page-shell">
       <section className="card hero-card">
-        <p className="eyebrow">PRINTMESH</p>
-        <h1>Local printing, without the guesswork.</h1>
-        <p className="muted">Send a PDF to a nearby print shop, choose your settings, and track it from upload to completion.</p>
-        <div className="hero-actions">
-          <Link className="button primary" href="/merchant/login">Merchant sign in</Link>
-          <a className="button secondary" href="#how-it-works">How it works</a>
-        </div>
+        <p className="eyebrow">PRINTMESH</p><h1>Print nearby. Track every page.</h1>
+        <p className="muted">Choose a store, upload your PDF, set the print options, and follow the job from submission to completion.</p>
+        <div className="hero-actions"><Link className="button primary" href="/merchant/login">Store sign in</Link><a className="button secondary" href="#stores">Find a store</a></div>
       </section>
-      <section id="how-it-works" className="card">
-        <p className="eyebrow">FOR CUSTOMERS</p>
-        <h2>Use your print shop&apos;s QR link</h2>
-        <p className="muted">Scan the shop QR code or open its PrintMesh link to upload a PDF and submit a print job. No customer account is required.</p>
-        <p className="muted">Merchant links look like <code>/s/YOUR-MERCHANT-ID</code>.</p>
+      <section id="stores" className="card"><p className="eyebrow">CUSTOMER PRINTING</p><h2>Choose a print store</h2>
+        {!stores?.length ? <p className="muted">Stores will appear here when they are available.</p> : <div className="resource-list">{stores.map((store) => <div className="resource-row" key={store.public_id}><div><strong>{store.name}</strong><span>{store.address ?? "Address not provided"}</span>{store.phone && <span>{store.phone}</span>}</div><Link className="button primary" href={`/s/${store.public_id}`}>Upload &amp; print</Link></div>)}</div>}
       </section>
     </main>
   );
