@@ -6,7 +6,6 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function MerchantLoginPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,10 +16,18 @@ export default function MerchantLoginPage() {
     setLoading(true);
     setError("");
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    let signInError;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      ({ error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+      }));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Merchant authentication is unavailable.");
+      setLoading(false);
+      return;
+    }
 
     if (signInError) {
       setError(signInError.message);
