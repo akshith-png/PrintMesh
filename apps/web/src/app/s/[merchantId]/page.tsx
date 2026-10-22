@@ -13,6 +13,7 @@ export default function MerchantPrintPage() {
   const [paperSize, setPaperSize] = useState("A4");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -43,7 +44,8 @@ export default function MerchantPrintPage() {
         <h1>Send a document to print</h1>
         <p className="muted">Upload your PDF, choose the print settings, and track it.</p>
         <form onSubmit={submit} className="form">
-          <label className="upload">PDF document<input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+          <label className="upload">PDF document<input type="file" accept="application/pdf" onChange={(e) => { const selected = e.target.files?.[0] ?? null; setFile(selected); setPreviewUrl(selected ? URL.createObjectURL(selected) : ""); }} /></label>
+          {previewUrl && <div className="pdf-preview"><p className="eyebrow">PREVIEW</p><iframe title="PDF preview" src={previewUrl} /></div>}
           <div className="grid">
             <label>Copies<input type="number" min="1" max="100" value={copies} onChange={(e) => setCopies(Number(e.target.value))} /></label>
             <label>Paper<select value={paperSize} onChange={(e) => setPaperSize(e.target.value)}><option value="A4">A4</option><option value="A3">A3</option><option value="LETTER">Letter</option></select></label>
