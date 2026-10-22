@@ -8,9 +8,12 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse({
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  // Vercel can materialize an unset secret as an empty string during build.
+  // Normalize that representation so optional configuration remains optional
+  // and route generation does not fail before runtime health checks can report it.
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || undefined,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || undefined,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || undefined,
   PRINTMESH_MAX_UPLOAD_BYTES: process.env.PRINTMESH_MAX_UPLOAD_BYTES ?? "26214400",
 });
 
