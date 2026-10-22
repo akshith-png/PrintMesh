@@ -12,6 +12,11 @@ function optionalUrl(value: string | undefined) {
   }
 }
 
+function optionalUploadLimit(value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
 const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
@@ -26,7 +31,7 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || undefined,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || undefined,
-  PRINTMESH_MAX_UPLOAD_BYTES: process.env.PRINTMESH_MAX_UPLOAD_BYTES ?? "26214400",
+  PRINTMESH_MAX_UPLOAD_BYTES: optionalUploadLimit(process.env.PRINTMESH_MAX_UPLOAD_BYTES) ?? "26214400",
 });
 
 export function hasSupabaseConfig() {
