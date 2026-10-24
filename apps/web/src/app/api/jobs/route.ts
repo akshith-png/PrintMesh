@@ -16,6 +16,8 @@ const optionsSchema = z.object({
   paperSize: z.enum(["A4", "A3", "LETTER"]).default("A4"),
 });
 const idempotencyKeySchema = z.string().uuid();
+const demoMerchantId = "00000000-0000-0000-0000-000000000001";
+const demoJobId = "pmj_00000000000000000000000000000001";
 
 function safeFilename(name: string) {
   const cleaned = name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -55,6 +57,9 @@ export async function POST(request: Request) {
     }
 
     if (!hasSupabaseConfig() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (merchantId === demoMerchantId) {
+        return NextResponse.json({ status: "QUEUED", jobId: demoJobId, merchant: "PrintMesh Demo Store", originalFilename: file.name, sizeBytes: file.size, options, demo: true }, { status: 201 });
+      }
       return NextResponse.json({
         status: "VALIDATED_DEV_ONLY",
         originalFilename: file.name,

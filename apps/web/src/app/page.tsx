@@ -10,6 +10,9 @@ export default async function Home() {
   } catch {
     // Keep the public shell renderable while deployment secrets are configured.
   }
+  if (stores.length === 0) {
+    stores = [{ public_id: "00000000-0000-0000-0000-000000000001", name: "PrintMesh Demo Store", address: "Demo location · test printing", phone: "Demo mode" }];
+  }
 
   return (
     <main className="page-shell">
