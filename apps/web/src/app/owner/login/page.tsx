@@ -1,5 +1,6 @@
+"use client";
 import Link from "next/link";
-
-export default function OwnerLoginPage() {
-  return <main className="shell"><section className="card auth-card"><p className="eyebrow">PRINTMESH OWNER</p><h1>Platform owner portal</h1><p className="muted">The owner console manages stores, jobs, agents and printer readiness. Sign in with the authorized owner account to continue.</p><div className="hero-actions"><Link className="button primary" href="/merchant/login?next=/admin">Secure owner sign in <span>→</span></Link><Link className="button secondary" href="/demo/owner">Preview owner console</Link></div><p className="muted auth-note">Owner access is restricted to the configured owner email allowlist. The preview contains no real customer data.</p></section></main>;
-}
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+export default function OwnerLoginPage(){const router=useRouter();const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [error,setError]=useState("");async function submit(e:FormEvent){e.preventDefault();setError("");try{const {error}=await createSupabaseBrowserClient().auth.signInWithPassword({email,password});if(error){setError(error.message);return;}router.replace("/admin");router.refresh();}catch(err){setError(err instanceof Error?err.message:"Sign-in unavailable");}}return <main className="shell"><section className="card auth-card"><p className="eyebrow">PRINTMESH OWNER</p><h1>Platform owner portal</h1><p className="muted">Sign in with the authorized owner account.</p><form className="form" onSubmit={submit}><label>Email<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<p className="error">{error}</p>}<button className="button primary">Sign in to owner console</button></form><div className="hero-actions"><Link className="button secondary" href="/demo/owner">Preview owner console</Link></div></section></main>}
