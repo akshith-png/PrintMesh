@@ -36,13 +36,14 @@ export async function POST(request: Request) {
     const form = await request.formData();
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ error: "PDF file is required." }, { status: 400 });
-    if (file.type !== "application/pdf") return NextResponse.json({ error: "Only application/pdf is accepted." }, { status: 400 });
+    const supportedImage = ["image/png", "image/jpeg", "image/webp"].includes(file.type);
+    if (file.type !== "application/pdf" && !supportedImage) return NextResponse.json({ error: "Upload a PDF, PNG, JPEG, or WebP image." }, { status: 400 });
     if (file.size <= 0) return NextResponse.json({ error: "The PDF is empty." }, { status: 400 });
     if (file.size > env.PRINTMESH_MAX_UPLOAD_BYTES) return NextResponse.json({ error: "PDF exceeds the configured size limit." }, { status: 413 });
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     const signature = new TextDecoder().decode(bytes.slice(0, 5));
-    if (signature !== "%PDF-") return NextResponse.json({ error: "Invalid PDF signature." }, { status: 400 });
+    if (file.type === "application/pdf" && signature !== "%PDF-") return NextResponse.json({ error: "Invalid PDF signature." }, { status: 400 });
 
     const options = optionsSchema.parse({
       copies: form.get("copies") ?? 1,

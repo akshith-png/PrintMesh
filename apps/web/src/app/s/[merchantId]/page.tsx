@@ -42,10 +42,10 @@ export default function MerchantPrintPage() {
       <section className="card">
         <p className="eyebrow">PRINTMESH</p>
         <h1>Send a document to print</h1>
-        <p className="muted">Upload your PDF, choose the print settings, and track it.</p>
+        <p className="muted">Upload a PDF, photo, screenshot, or document image. Choose print settings and track it.</p>
         <form onSubmit={submit} className="form">
-          <label className="upload">PDF document<input type="file" accept="application/pdf" onChange={(e) => { const selected = e.target.files?.[0] ?? null; setFile(selected); setPreviewUrl(selected ? URL.createObjectURL(selected) : ""); }} /></label>
-          {previewUrl && <div className="pdf-preview"><p className="eyebrow">PREVIEW</p><iframe title="PDF preview" src={previewUrl} /></div>}
+          <label className="upload">Document or image<input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" onChange={(e) => { const selected = e.target.files?.[0] ?? null; setFile(selected); setPreviewUrl(selected ? URL.createObjectURL(selected) : ""); }} /></label>
+          {previewUrl && <div className="pdf-preview"><p className="eyebrow">PREVIEW</p>{file?.type === "application/pdf" ? <iframe title="PDF preview" src={previewUrl} /> : <img className="image-preview" alt="Document preview" src={previewUrl} />}</div>}
           <div className="grid">
             <label>Copies<input type="number" min="1" max="100" value={copies} onChange={(e) => setCopies(Number(e.target.value))} /></label>
             <label>Paper<select value={paperSize} onChange={(e) => setPaperSize(e.target.value)}><option value="A4">A4</option><option value="A3">A3</option><option value="LETTER">Letter</option></select></label>
