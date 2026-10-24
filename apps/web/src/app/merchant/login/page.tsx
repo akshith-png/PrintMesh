@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -76,6 +77,7 @@ export default function MerchantLoginPage() {
           <button type="submit" disabled={loading}>
             {loading ? "Signing in..." : "Sign in"}
           </button>
+          <Link className="button secondary" href="/demo/merchant">Preview merchant dashboard</Link>
         </form>
       </section>
     </main>
