@@ -14,6 +14,7 @@ export default function MerchantPrintPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -30,7 +31,10 @@ export default function MerchantPrintPage() {
       const response = await fetch("/api/jobs", { method: "POST", body: form });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not submit print job.");
-      if (data.jobId) router.push(`/track/${data.jobId}`);
+      if (data.jobId) {
+        setSubmitted(true);
+        window.setTimeout(() => router.push(`/track/${data.jobId}`), 1400);
+      }
       else setMessage(data.message ?? "PDF validated.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not submit print job.");
@@ -52,9 +56,10 @@ export default function MerchantPrintPage() {
             <label>Color<select value={colorMode} onChange={(e) => setColorMode(e.target.value)}><option value="BW">Black & White</option><option value="COLOR">Color</option></select></label>
           </div>
           <label className="check"><input type="checkbox" checked={duplex} onChange={(e) => setDuplex(e.target.checked)} /> Double-sided</label>
-          <button disabled={busy}>{busy ? "Submitting..." : "Submit print job"}</button>
+          <button disabled={busy || submitted}>{busy ? "Sending to store..." : submitted ? "Print job accepted" : "Submit print job"}</button>
           {message && <p className="message">{message}</p>}
         </form>
+        {submitted && <div className="print-confirm" role="status"><div className="printer-animation"><span className="paper-sheet" /></div><strong>Your document is on its way</strong><span>Opening live tracking…</span></div>}
       </section>
     </main>
   );
