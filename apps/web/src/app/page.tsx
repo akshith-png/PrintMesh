@@ -13,7 +13,7 @@ export default async function Home() {
 
   return (
     <main className="page-shell">
-      <nav className="topbar"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div className="nav-links"><Link href="#stores">Find a store</Link><Link href="/merchant/login">Merchant sign in</Link><Link className="nav-owner" href="/admin">Owner console</Link></div></nav>
+      <nav className="topbar"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div className="nav-links"><Link href="/customer">Customer dashboard</Link><Link href="#stores">Find a store</Link><Link href="/merchant/login">Merchant sign in</Link><Link className="nav-owner" href="/admin">Owner console</Link></div></nav>
       <section className="card hero-card">
         <div className="hero-kicker"><span className="pulse" /> PRINTING, SIMPLIFIED</div><h1>Print nearby.<br /><em>Track every page.</em></h1>
         <p className="muted">Choose a store, upload your PDF, set the print options, and follow the job from submission to completion.</p>
