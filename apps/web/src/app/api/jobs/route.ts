@@ -26,7 +26,10 @@ function safeFilename(name: string) {
 
 export async function POST(request: Request) {
   try {
-    const requestLimit = await distributedRateLimit(requestKey(request, "customer-job"), 10);
+    const previewForm = request.clone();
+    const previewData = await previewForm.formData();
+    const previewMerchantId = String(previewData.get("merchantId") ?? "").trim();
+    const requestLimit = previewMerchantId === demoMerchantId ? { allowed: true, retryAfterSeconds: 0 } : await distributedRateLimit(requestKey(request, "customer-job"), 10);
     if (!requestLimit.allowed) {
       return NextResponse.json({ error: "Too many upload attempts. Try again shortly." }, {
         status: 429,
