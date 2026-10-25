@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
 import { PrinterSetupPanel } from "./PrinterSetupPanel";
@@ -97,6 +98,7 @@ export default async function MerchantDashboardPage() {
     <main className="page-shell">
       <header className="dashboard-header">
         <div>
+          <p className="back-link"><Link href="/">← PrintMesh home</Link></p>
           <p className="eyebrow">PRINTMESH MERCHANT</p>
           <h1>{merchant?.name ?? "Merchant dashboard"}</h1>
           <p className="muted">{user.email}</p>
