@@ -37,3 +37,5 @@ button:disabled{opacity:.55;cursor:wait}
 code{background:#eee;padding:3px 6px;border-radius:5px}
 @media(max-width:700px){.page-shell{padding:14px 14px 48px}.topbar,.portal-nav{align-items:flex-start;gap:18px;flex-wrap:wrap}.nav-links{gap:10px;flex-wrap:wrap;justify-content:flex-end}.nav-links a,.portal-nav a:not(.brand){font-size:12px}.hero-card{padding:38px 24px}.audience-grid{grid-template-columns:1fr}.card{padding:22px;border-radius:18px}.grid{grid-template-columns:1fr}.dashboard-header{display:grid}.stats-grid{grid-template-columns:repeat(2,1fr)}.resource-row{align-items:flex-start;flex-direction:column}.row-actions{width:100%;justify-content:space-between}.store-card-body{align-items:stretch;flex-direction:column}.store-card-body .button{width:100%}.auth-card{margin-top:5vh;padding:26px 20px}.auth-card h1{font-size:44px}.portal-nav>div{gap:10px;flex-wrap:wrap}}
 
+
+.store-emoji{display:block;font-size:4.5rem;line-height:1;margin-bottom:1rem}.store-cover{min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
