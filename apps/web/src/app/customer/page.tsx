@@ -1,20 +1,4 @@
 import Link from "next/link";
-
-export default function CustomerDashboard() {
-  return (
-    <main className="page-shell">
-      <nav className="topbar"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div className="nav-links"><Link href="/">Home</Link><Link href="/merchant/login">Merchant sign in</Link></div></nav>
-      <section className="card hero-card">
-        <div className="hero-kicker"><span className="pulse" /> CUSTOMER PRINTING</div>
-        <h1>Your print desk,<br /><em>wherever you are.</em></h1>
-        <p className="muted">Choose a nearby store, upload your PDF, set paper and color options, and follow your job from upload to completion.</p>
-        <div className="hero-actions"><Link className="button primary" href="/#stores">Choose a store <span>→</span></Link><Link className="button secondary" href="/">Back home</Link></div>
-      </section>
-      <section className="audience-grid">
-        <div className="audience-card customer"><span className="audience-icon">1</span><strong>Choose a store</strong><span>Open the store link shared by your print shop or select one from the homepage.</span></div>
-        <div className="audience-card merchant"><span className="audience-icon">2</span><strong>Set your options</strong><span>Upload a PDF and choose copies, A4, color or black-and-white, and duplex printing.</span></div>
-        <div className="audience-card owner"><span className="audience-icon">3</span><strong>Track the job</strong><span>Your tracking link shows queue, approval, printing, and completion status.</span></div>
-      </section>
-    </main>
-  );
-}
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+export const dynamic="force-dynamic";
+export default async function CustomerDashboard(){const db=createSupabaseAdminClient();const{data:stores}=await db.from("merchants").select("public_id,name,address,phone,status").order("name");return <main className="page-shell customer-directory"><nav className="topbar"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div className="nav-links"><Link href="/">Home</Link><Link href="/merchant/login">Merchant portal</Link><Link href="/owner/login">Owner portal</Link></div></nav><section className="card directory-hero"><p className="eyebrow">PRINTMESH STORES</p><h1>Find a print store</h1><p className="muted">Browse nearby print shops, compare availability, and choose where your documents should be produced.</p></section><section className="store-grid directory-grid">{(stores??[]).map(store=><article className={`store-card ${store.status!=="ACTIVE"?"store-offline":""}`} key={store.public_id}><div className="store-cover"><span>✦</span><small>{store.status==="ACTIVE"?"AVAILABLE NOW":"CURRENTLY OFFLINE"}</small></div><div className="store-card-body"><div><strong>{store.name}</strong><span>{store.address??"Address not provided"}</span>{store.phone&&<span>{store.phone}</span>}</div>{store.status==="ACTIVE"?<Link className="button primary" href={`/s/${store.public_id}`}>Choose store</Link>:<span className="status">Offline</span>}</div></article>)}</section>{!stores?.length&&<section className="card"><p className="muted">No stores are available yet.</p></section>}</main>}

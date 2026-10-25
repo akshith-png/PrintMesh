@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   let stores: Array<{ public_id: string; name: string; address: string | null; phone: string | null }> = [];
