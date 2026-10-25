@@ -5,6 +5,7 @@ import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
 import { PrinterSetupPanel } from "./PrinterSetupPanel";
 import QRCode from "qrcode";
 import { MerchantAvailabilityForm } from "./MerchantAvailabilityForm";
+import { MerchantLogoutButton } from "./MerchantLogoutButton";
 
 type Job = {
   id: string;
@@ -95,7 +96,7 @@ export default async function MerchantDashboardPage() {
   const qrDataUrl = await QRCode.toDataURL(publicUrl, { width: 220, margin: 1 });
 
   return (
-    <main className="page-shell">
+    <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant">Dashboard</Link></div></nav>
       <header className="dashboard-header">
         <div>
           <p className="back-link"><Link href="/">← PrintMesh home</Link></p>
@@ -105,11 +106,7 @@ export default async function MerchantDashboardPage() {
           <MerchantAvailabilityForm online={merchant?.status === "ACTIVE"} />
         </div>
 
-        <form action="/api/merchant/logout" method="post">
-          <button className="secondary-button" type="submit">
-            Sign out
-          </button>
-        </form>
+        <MerchantLogoutButton />
       </header>
 
       <section className="stats-grid">
