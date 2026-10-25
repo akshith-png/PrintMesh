@@ -1,0 +1,5 @@
+"use client";
+import Link from "next/link";
+import { FormEvent, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+export default function OwnerEmailPage(){const[email,setEmail]=useState("");const[message,setMessage]=useState("");async function submit(e:FormEvent){e.preventDefault();setMessage("");const{error}=await createSupabaseBrowserClient().auth.updateUser({email});setMessage(error?`😬 ${error.message}`:"📨 Confirmation sent. Verify the new email before signing in again.");}return <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><Link href="/admin">← Back to owner console</Link></nav><section className="card auth-card"><p className="eyebrow">OWNER SECURITY ✉️</p><h1>Change owner email</h1><p className="muted">We’ll send confirmation links to protect your account.</p><form className="form" onSubmit={submit}><label>New email<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><button className="button primary">Send confirmation ✨</button>{message&&<p className="message">{message}</p>}</form></section></main>}
