@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
 import { PrinterSetupPanel } from "./PrinterSetupPanel";
 import QRCode from "qrcode";
+import { MerchantAvailabilityForm } from "./MerchantAvailabilityForm";
 
 type Job = {
   id: string;
@@ -99,6 +100,7 @@ export default async function MerchantDashboardPage() {
           <p className="eyebrow">PRINTMESH MERCHANT</p>
           <h1>{merchant?.name ?? "Merchant dashboard"}</h1>
           <p className="muted">{user.email}</p>
+          <MerchantAvailabilityForm online={merchant?.status === "ACTIVE"} />
         </div>
 
         <form action="/api/merchant/logout" method="post">
