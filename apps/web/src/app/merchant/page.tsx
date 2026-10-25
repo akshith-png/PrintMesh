@@ -96,7 +96,7 @@ export default async function MerchantDashboardPage() {
   const qrDataUrl = await QRCode.toDataURL(publicUrl, { width: 220, margin: 1 });
 
   return (
-    <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant">Dashboard</Link></div></nav>
+    <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant">Dashboard</Link><Link href="/merchant/password">Password ??</Link></div></nav>
       <header className="dashboard-header">
         <div>
           <p className="back-link"><Link href="/">← PrintMesh home</Link></p>
@@ -242,3 +242,4 @@ export default async function MerchantDashboardPage() {
     </main>
   );
 }
+
