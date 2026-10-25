@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { BackButton } from "@/components/BackButton";
 
 export default function MerchantPrintPage() {
   const params = useParams<{ merchantId: string }>();
@@ -44,7 +45,7 @@ export default function MerchantPrintPage() {
 
   return (
     <main className="page-shell customer-print-shell">
-      <nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant/login">Merchant portal</Link></div></nav>
+      <nav className="portal-nav"><div><BackButton/></div><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant/login">Merchant portal</Link></div></nav>
       <section className="card customer-print-card">
         <p className="eyebrow">PRINTMESH</p>
         <h1>Send a document to print</h1>
@@ -60,7 +61,7 @@ export default function MerchantPrintPage() {
           <label className="check"><input type="checkbox" checked={duplex} onChange={(e) => setDuplex(e.target.checked)} /> Double-sided</label>
           <button disabled={busy || submitted}>{busy ? "Sending to store..." : submitted ? "Print job accepted" : "Submit print job"}</button>
           {message && <p className="message">{message}</p>}
-        </form><p className="back-link"><Link href="/">← Choose another store</Link></p>
+        </form>
         {submitted && <div className="print-confirm" role="status"><div className="printer-animation"><span className="paper-sheet" /></div><strong>Your document is on its way</strong><span>Opening live tracking…</span></div>}
       </section>
     </main>
