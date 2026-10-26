@@ -99,7 +99,7 @@ export default async function MerchantDashboardPage() {
     <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><div><Link href="/">Home</Link><Link href="/merchant">Dashboard</Link><Link href="/merchant/password">Password &#x1F510;</Link></div></nav>
       <header className="dashboard-header">
         <div>
-          <p className="back-link"><Link href="/">â† PrintMesh home</Link></p>
+          <p className="back-link"><Link href="/">&#x2190; PrintMesh home</Link></p>
           <p className="eyebrow">PRINTMESH MERCHANT</p>
           <h1>{merchant?.name ?? "Merchant dashboard"}</h1>
           <p className="muted">{user.email}</p>
