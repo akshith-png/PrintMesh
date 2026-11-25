@@ -1,6 +1,24 @@
 ﻿import { NextResponse } from "next/server";
 import { requireOwner } from "@/lib/owner-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
+async function findStore(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  key: string,
+) {
+  const byId = await admin
+    .from("merchants")
+    .select("id,name")
+    .eq("id", key)
+    .maybeSingle();
+  if (byId.data) return byId.data;
+  const byPublicId = await admin
+    .from("merchants")
+    .select("id,name")
+    .eq("public_id", key)
+    .maybeSingle();
+  return byPublicId.data;
+}
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ storeId: string }> },
@@ -19,11 +37,7 @@ export async function DELETE(
       { status: 400 },
     );
   const admin = createSupabaseAdminClient();
-  const { data: store } = await admin
-    .from("merchants")
-    .select("id,name")
-    .or(`id.eq.${storeId},public_id.eq.${storeId}`)
-    .maybeSingle();
+  const store = await findStore(admin, storeId);
   if (!store)
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   const { error } = await admin.from("merchants").delete().eq("id", store.id);
@@ -34,17 +48,15 @@ export async function DELETE(
       },
       { status: 400 },
     );
-  await admin
-    .from("owner_audit_logs")
-    .insert({
-      actor_user_id: owner.user.id,
-      action: "STORE_DELETED",
-      target_type: "merchant",
-      target_id: storeId,
-      reason: "Owner confirmed DELETE",
-      before_state: store,
-      after_state: null,
-    });
+  await admin.from("owner_audit_logs").insert({
+    actor_user_id: owner.user.id,
+    action: "STORE_DELETED",
+    target_type: "merchant",
+    target_id: storeId,
+    reason: "Owner confirmed DELETE",
+    before_state: store,
+    after_state: null,
+  });
   return NextResponse.json({ ok: true });
 }
 export async function PATCH(
@@ -76,9 +88,20 @@ export async function PATCH(
     .select(
       "id,name,address,phone,image_url,status,lifecycle_status,status_reason",
     )
-    .or(`id.eq.${storeId},public_id.eq.${storeId}`)
+    .eq("id", storeId)
     .maybeSingle();
-  if (!before)
+  const resolvedBefore =
+    before ??
+    (
+      await admin
+        .from("merchants")
+        .select(
+          "id,name,address,phone,image_url,status,lifecycle_status,status_reason",
+        )
+        .eq("public_id", storeId)
+        .maybeSingle()
+    ).data;
+  if (!resolvedBefore)
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   if (!lifecycle)
     return NextResponse.json(
@@ -86,16 +109,18 @@ export async function PATCH(
       { status: 400 },
     );
   const reason = String(body.reason ?? "").trim();
-  if (lifecycle !== before.lifecycle_status && !reason)
+  if (lifecycle !== resolvedBefore.lifecycle_status && !reason)
     return NextResponse.json(
       { error: "A reason is required" },
       { status: 400 },
     );
   const next = {
-    name: String(body.name ?? before.name).trim(),
-    address: String(body.address ?? before.address ?? "").trim() || null,
-    phone: String(body.phone ?? before.phone ?? "").trim() || null,
-    image_url: String(body.image_url ?? before.image_url ?? "").trim() || null,
+    name: String(body.name ?? resolvedBefore.name).trim(),
+    address:
+      String(body.address ?? resolvedBefore.address ?? "").trim() || null,
+    phone: String(body.phone ?? resolvedBefore.phone ?? "").trim() || null,
+    image_url:
+      String(body.image_url ?? resolvedBefore.image_url ?? "").trim() || null,
     lifecycle_status: lifecycle,
     status_reason: reason || null,
     status: lifecycle === "ACTIVE" ? "ACTIVE" : "DISABLED",
@@ -105,7 +130,7 @@ export async function PATCH(
     const { data: assignment } = await admin
       .from("merchant_users")
       .select("auth_user_id")
-      .eq("merchant_id", before.id)
+      .eq("merchant_id", resolvedBefore.id)
       .maybeSingle();
     if (assignment?.auth_user_id) {
       const email = String(body.merchant_email).trim().toLowerCase();
@@ -123,22 +148,20 @@ export async function PATCH(
   const { error } = await admin
     .from("merchants")
     .update(next)
-    .eq("id", before.id);
+    .eq("id", resolvedBefore.id);
   if (error)
     return NextResponse.json(
       { error: "Could not update store" },
       { status: 400 },
     );
-  await admin
-    .from("owner_audit_logs")
-    .insert({
-      actor_user_id: owner.user.id,
-      action: `STORE_${lifecycle}`,
-      target_type: "merchant",
-      target_id: storeId,
-      reason: reason || null,
-      before_state: before,
-      after_state: next,
-    });
+  await admin.from("owner_audit_logs").insert({
+    actor_user_id: owner.user.id,
+    action: `STORE_${lifecycle}`,
+    target_type: "merchant",
+    target_id: storeId,
+    reason: reason || null,
+    before_state: resolvedBefore,
+    after_state: next,
+  });
   return NextResponse.json({ ok: true });
 }
