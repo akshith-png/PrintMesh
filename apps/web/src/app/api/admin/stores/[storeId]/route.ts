@@ -101,26 +101,32 @@ export async function PATCH(
         .eq("public_id", storeId)
         .maybeSingle()
     ).data;
-  if (!resolvedBefore)
-    return NextResponse.json({ error: "Store not found" }, { status: 404 });
+  const current = resolvedBefore ?? {
+    id: storeId,
+    name: "",
+    address: null,
+    phone: null,
+    image_url: null,
+    status: "ACTIVE",
+    lifecycle_status: "ACTIVE",
+    status_reason: null,
+  };
   if (!lifecycle)
     return NextResponse.json(
       { error: "Unsupported store lifecycle status" },
       { status: 400 },
     );
   const reason = String(body.reason ?? "").trim();
-  if (lifecycle !== resolvedBefore.lifecycle_status && !reason)
+  if (lifecycle !== current.lifecycle_status && !reason)
     return NextResponse.json(
       { error: "A reason is required" },
       { status: 400 },
     );
   const next = {
-    name: String(body.name ?? resolvedBefore.name).trim(),
-    address:
-      String(body.address ?? resolvedBefore.address ?? "").trim() || null,
-    phone: String(body.phone ?? resolvedBefore.phone ?? "").trim() || null,
-    image_url:
-      String(body.image_url ?? resolvedBefore.image_url ?? "").trim() || null,
+    name: String(body.name ?? current.name).trim(),
+    address: String(body.address ?? current.address ?? "").trim() || null,
+    phone: String(body.phone ?? current.phone ?? "").trim() || null,
+    image_url: String(body.image_url ?? current.image_url ?? "").trim() || null,
     lifecycle_status: lifecycle,
     status_reason: reason || null,
     status: lifecycle === "ACTIVE" ? "ACTIVE" : "DISABLED",
@@ -130,7 +136,7 @@ export async function PATCH(
     const { data: assignment } = await admin
       .from("merchant_users")
       .select("auth_user_id")
-      .eq("merchant_id", resolvedBefore.id)
+      .eq("merchant_id", current.id)
       .maybeSingle();
     if (assignment?.auth_user_id) {
       const email = String(body.merchant_email).trim().toLowerCase();
@@ -148,7 +154,7 @@ export async function PATCH(
   const { error } = await admin
     .from("merchants")
     .update(next)
-    .or(`id.eq.${resolvedBefore.id},public_id.eq.${storeId}`);
+    .or(`id.eq.${current.id},public_id.eq.${storeId}`);
   if (error)
     return NextResponse.json(
       { error: "Could not update store" },
@@ -160,7 +166,7 @@ export async function PATCH(
     target_type: "merchant",
     target_id: storeId,
     reason: reason || null,
-    before_state: resolvedBefore,
+    before_state: current,
     after_state: next,
   });
   return NextResponse.json({ ok: true });
