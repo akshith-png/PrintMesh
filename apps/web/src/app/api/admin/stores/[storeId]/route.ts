@@ -74,7 +74,7 @@ export async function PATCH(
   const { data: before } = await admin
     .from("merchants")
     .select(
-      "name,address,phone,image_url,status,lifecycle_status,status_reason",
+      "id,name,address,phone,image_url,status,lifecycle_status,status_reason",
     )
     .or(`id.eq.${storeId},public_id.eq.${storeId}`)
     .maybeSingle();
