@@ -154,7 +154,7 @@ export async function PATCH(
   const { error } = await admin
     .from("merchants")
     .update(next)
-    .or(`id.eq.${current.id},public_id.eq.${storeId}`);
+    .eq("id", current.id);
   if (error)
     return NextResponse.json(
       { error: "Could not update store" },
