@@ -157,7 +157,7 @@ export async function PATCH(
     .eq("id", current.id);
   if (error)
     return NextResponse.json(
-      { error: "Could not update store" },
+      { error: `Could not update store: ${error.message}` },
       { status: 400 },
     );
   await admin.from("owner_audit_logs").insert({
