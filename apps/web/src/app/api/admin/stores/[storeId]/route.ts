@@ -86,7 +86,7 @@ export async function PATCH(
   const { data: before } = await admin
     .from("merchants")
     .select(
-      "id,name,address,phone,image_url,status,lifecycle_status,status_reason",
+      "id,name,address,phone,status,lifecycle_status,status_reason",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -96,7 +96,7 @@ export async function PATCH(
       await admin
         .from("merchants")
         .select(
-          "id,name,address,phone,image_url,status,lifecycle_status,status_reason",
+          "id,name,address,phone,status,lifecycle_status,status_reason",
         )
         .eq("public_id", storeId)
         .maybeSingle()
@@ -106,7 +106,6 @@ export async function PATCH(
     name: "",
     address: null,
     phone: null,
-    image_url: null,
     status: "ACTIVE",
     lifecycle_status: "ACTIVE",
     status_reason: null,
@@ -126,7 +125,6 @@ export async function PATCH(
     name: String(body.name ?? current.name).trim(),
     address: String(body.address ?? current.address ?? "").trim() || null,
     phone: String(body.phone ?? current.phone ?? "").trim() || null,
-    image_url: String(body.image_url ?? current.image_url ?? "").trim() || null,
     lifecycle_status: lifecycle,
     status_reason: reason || null,
     status: lifecycle === "ACTIVE" ? "ACTIVE" : "DISABLED",
