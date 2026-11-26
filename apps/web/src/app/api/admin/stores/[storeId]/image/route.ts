@@ -13,8 +13,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ sto
   const db = createSupabaseAdminClient();
   const { data: store } = await db.from("merchants").select("id").eq("id", storeId).maybeSingle();
   if (!store) return NextResponse.json({ error: "Store not found." }, { status: 404 });
-  const path = `${store.id}/${crypto.randomUUID()}`;
-  const upload = await db.storage.from("store-images").upload(path, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+  const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const path = `${store.id}/${crypto.randomUUID()}.${extension}`;
+  const upload = await db.storage.from("store-images").upload(path, file, { contentType: file.type, upsert: false });
   if (upload.error) return NextResponse.json({ error: `Image upload failed: ${upload.error.message}` }, { status: 502 });
   const { data: url } = db.storage.from("store-images").getPublicUrl(path);
   const { error } = await db.from("merchants").update({ image_url: url.publicUrl }).eq("id", store.id);
