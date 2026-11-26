@@ -110,6 +110,11 @@ export async function PATCH(
     lifecycle_status: "ACTIVE",
     status_reason: null,
   };
+  if (!resolvedBefore)
+    return NextResponse.json(
+      { error: `Could not update store: no merchant matched id or public_id \"${storeId}\".` },
+      { status: 404 },
+    );
   if (!lifecycle)
     return NextResponse.json(
       { error: "Unsupported store lifecycle status" },
@@ -144,7 +149,7 @@ export async function PATCH(
       );
       if (authError)
         return NextResponse.json(
-          { error: "Could not update merchant login email" },
+          { error: `Could not update merchant login email: ${authError.message}` },
           { status: 400 },
         );
     }
