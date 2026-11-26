@@ -1,13 +1,10 @@
-"use client";
-import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import MerchantPasswordForm from "./MerchantPasswordForm";
 
-export default function MerchantPasswordPage() {
-  const router = useRouter(); const [checking, setChecking] = useState(true); const [oldPassword, setOld] = useState(""); const [nextPassword, setNext] = useState(""); const [message, setMessage] = useState("");
-  useEffect(() => { createSupabaseBrowserClient().auth.getUser().then(({ data }) => { if (!data.user) router.replace("/merchant/login"); else setChecking(false); }); }, [router]);
-  async function submit(e: FormEvent) { e.preventDefault(); setMessage(""); const supabase = createSupabaseBrowserClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user?.email) { setMessage("Please sign in first."); return; } const signed = await supabase.auth.signInWithPassword({ email: user.email, password: oldPassword }); if (signed.error) { setMessage("That current password is not right."); return; } const { error } = await supabase.auth.updateUser({ password: nextPassword }); setMessage(error ? error.message : "Password updated successfully!"); }
-  if (checking) return <main className="page-shell"><section className="card auth-card"><p className="muted">Checking your session...</p></section></main>;
-  return <main className="page-shell"><nav className="portal-nav"><Link className="brand" href="/">PRINT<span>MESH</span></Link><Link href="/merchant">&#x2190; Back to dashboard</Link></nav><section className="card auth-card"><p className="eyebrow">MERCHANT SECURITY &#x1F512;</p><h1>CHANGE PASSWORD</h1><form className="form" onSubmit={submit}><label>Current password<input type="password" required value={oldPassword} onChange={e => setOld(e.target.value)} /></label><label>New password<input type="password" minLength={8} required value={nextPassword} onChange={e => setNext(e.target.value)} /></label><button className="button primary">Update password &#x2728;</button>{message && <p className="message">{message}</p>}</form></section></main>;
+export default async function MerchantPasswordPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/merchant/login");
+  return <MerchantPasswordForm />;
 }
