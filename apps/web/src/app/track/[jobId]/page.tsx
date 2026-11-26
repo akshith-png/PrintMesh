@@ -12,6 +12,8 @@ export default function TrackPage() {
   const params = useParams<{ jobId: string }>();
   const [data, setData] = useState<JobData | null>(null);
   const [error, setError] = useState("");
+  const [cancelSeconds, setCancelSeconds] = useState(5);
+  const [cancelled, setCancelled] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -31,6 +33,19 @@ export default function TrackPage() {
     };
   }, [load]);
 
+  useEffect(() => {
+    if (cancelSeconds <= 0 || cancelled) return;
+    const timer = window.setTimeout(() => setCancelSeconds((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cancelSeconds, cancelled]);
+
+  async function cancelJob() {
+    const response = await fetch(`/api/jobs/${params.jobId}/cancel`, { method: "POST" });
+    const body = await response.json();
+    if (!response.ok) { setError(body.error ?? "Cancellation failed."); return; }
+    setCancelled(true); await load();
+  }
+
   if (error) return <main className="shell"><section className="card"><h1>Print job</h1><p className="message">{error}</p></section></main>;
   if (!data) return <main className="shell"><section className="card"><h1>Loading print job...</h1></section></main>;
 
@@ -41,6 +56,8 @@ export default function TrackPage() {
         <p className="eyebrow">PRINTMESH</p>
         <h1>Print job status</h1>
         <div className="status">{data.job.status}</div>
+        {data.job.status === "QUEUED" && !cancelled && <button type="button" disabled={cancelSeconds === 0} onClick={cancelJob}>{cancelSeconds ? `Cancel print (${cancelSeconds}s)` : "Cancel window closed"}</button>}
+        {data.job.status === "CANCELLED" && <p className="message">Print job cancelled.</p>}
         <p><strong>{file?.original_filename ?? "PDF document"}</strong></p>
         <p className="muted">{data.job.copies} copy/copies · {data.job.color_mode} · {data.job.paper_size} · {data.job.duplex ? "Double-sided" : "Single-sided"}</p>
         <h2>Timeline</h2>
