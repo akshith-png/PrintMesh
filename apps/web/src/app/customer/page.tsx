@@ -16,8 +16,8 @@ export default async function CustomerDashboard() {
   }
   stores = await Promise.all((stores ?? []).map(async (store) => {
     if (!store.image_url || store.image_url.startsWith("http")) return store;
-    const signed = await db.storage.from("store-images").createSignedUrl(store.image_url, 60 * 60 * 24);
-    return { ...store, image_url: signed.data?.signedUrl ?? null };
+    const publicUrl = db.storage.from("store-images").getPublicUrl(store.image_url).data.publicUrl;
+    return { ...store, image_url: publicUrl };
   }));
   return (
     <main className="page-shell customer-directory">
