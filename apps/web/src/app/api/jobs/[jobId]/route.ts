@@ -20,7 +20,7 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
   const supabase = createSupabaseAdminClient();
   const jobQuery = supabase
     .from("print_jobs")
-    .select("id,public_id,merchant_id,status,copies,color_mode,duplex,paper_size,created_at,updated_at,print_files(original_filename,size_bytes,mime_type)");
+    .select("id,public_id,merchant_id,status,copies,color_mode,duplex,paper_size,created_at,updated_at");
   const primary = await (jobId.startsWith("pmj_")
     ? jobQuery.eq("public_id", jobId)
     : jobQuery.eq("id", jobId)).maybeSingle();
@@ -31,6 +31,13 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
   const error = fallback.error;
 
   if (error || !job) return NextResponse.json({ error: "Job not found." }, { status: 404 });
+
+  const { data: printFiles } = await supabase
+    .from("print_files")
+    .select("original_filename,size_bytes,mime_type")
+    .eq("job_id", job.id)
+    .limit(1);
+  (job as any).print_files = printFiles ?? [];
 
   const { data: events } = await supabase
     .from("print_job_events")
