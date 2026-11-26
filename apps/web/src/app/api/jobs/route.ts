@@ -56,8 +56,8 @@ export async function POST(request: Request) {
     });
 
     const merchantId = String(form.get("merchantId") ?? "").trim();
-    if (!merchantId || !z.string().uuid().safeParse(merchantId).success) {
-      return NextResponse.json({ error: "A valid merchantId is required." }, { status: 400 });
+    if (!merchantId) {
+      return NextResponse.json({ error: "A merchantId or store public ID is required." }, { status: 400 });
     }
 
     if (!hasSupabaseConfig() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -84,14 +84,15 @@ export async function POST(request: Request) {
     const storagePath = `${merchantId}/${jobSeed}/${cleanName}`;
 
     const { data: merchant, error: merchantError } = await supabase
-      .from("merchants").select("id,name").eq("id", merchantId).single();
+      .from("merchants").select("id,name").or(`id.eq.${merchantId},public_id.eq.${merchantId}`).maybeSingle();
     if (merchantError || !merchant) return NextResponse.json({ error: "Merchant not found." }, { status: 404 });
+    const canonicalMerchantId = merchant.id;
 
     if (requestedIdempotencyKey) {
       const { data: existingJob, error: existingJobError } = await supabase
         .from("print_jobs")
         .select("id,public_id,status,merchant_id,print_files(original_filename,size_bytes)")
-        .eq("merchant_id", merchantId)
+        .eq("merchant_id", canonicalMerchantId)
         .eq("idempotency_key", requestedIdempotencyKey)
         .maybeSingle();
       if (existingJobError) return NextResponse.json({ error: existingJobError.message }, { status: 502 });
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
     if (uploadError) return NextResponse.json({ error: `Storage upload failed: ${uploadError.message}` }, { status: 502 });
 
     const { data: jobId, error: rpcError } = await supabase.rpc("create_customer_print_job", {
-      p_merchant_id: merchantId,
+      p_merchant_id: canonicalMerchantId,
       p_original_filename: file.name,
       p_storage_path: storagePath,
       p_size_bytes: file.size,
