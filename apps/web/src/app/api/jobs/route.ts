@@ -83,8 +83,10 @@ export async function POST(request: Request) {
     const jobSeed = requestedIdempotencyKey ?? crypto.randomUUID();
     const storagePath = `${merchantId}/${jobSeed}/${cleanName}`;
 
-    const { data: merchant, error: merchantError } = await supabase
-      .from("merchants").select("id,name").or(`id.eq.${merchantId},public_id.eq.${merchantId}`).maybeSingle();
+    const merchantQuery = supabase.from("merchants").select("id,name");
+    const { data: merchant, error: merchantError } = z.string().uuid().safeParse(merchantId).success
+      ? await merchantQuery.eq("id", merchantId).maybeSingle()
+      : await merchantQuery.eq("public_id", merchantId).maybeSingle();
     if (merchantError || !merchant) return NextResponse.json({ error: "Merchant not found." }, { status: 404 });
     const canonicalMerchantId = merchant.id;
 
