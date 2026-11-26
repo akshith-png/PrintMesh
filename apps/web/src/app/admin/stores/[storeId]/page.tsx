@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireOwner } from "@/lib/owner-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { StoreStatusForm } from "./StoreStatusForm";
+function storagePath(value: string) { const marker = "/store-images/"; const index = value.indexOf(marker); return index >= 0 ? decodeURIComponent(value.slice(index + marker.length).split("?")[0]) : value; }
 export default async function StorePage({
   params,
 }: {
@@ -26,7 +27,7 @@ export default async function StorePage({
     store = fallback.data as typeof store;
   }
   if (!store) notFound();
-  const displayImage = store.image_url?.startsWith("http") ? store.image_url : store.image_url ? admin.storage.from("store-images").getPublicUrl(store.image_url).data.publicUrl : "";
+  const displayImage = store.image_url ? admin.storage.from("store-images").getPublicUrl(storagePath(store.image_url)).data.publicUrl : "";
   const { data: assignment } = await admin
     .from("merchant_users")
     .select("auth_user_id")
