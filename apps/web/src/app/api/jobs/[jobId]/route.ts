@@ -21,9 +21,14 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
   const jobQuery = supabase
     .from("print_jobs")
     .select("id,public_id,merchant_id,status,copies,color_mode,duplex,paper_size,created_at,updated_at,print_files(original_filename,size_bytes,mime_type)");
-  const { data: job, error } = await (jobId.startsWith("pmj_")
+  const primary = await (jobId.startsWith("pmj_")
     ? jobQuery.eq("public_id", jobId)
-    : jobQuery.eq("id", jobId)).single();
+    : jobQuery.eq("id", jobId)).maybeSingle();
+  const fallback = !primary.data
+    ? await jobQuery.eq("id", jobId).maybeSingle()
+    : primary;
+  const job = fallback.data;
+  const error = fallback.error;
 
   if (error || !job) return NextResponse.json({ error: "Job not found." }, { status: 404 });
 
