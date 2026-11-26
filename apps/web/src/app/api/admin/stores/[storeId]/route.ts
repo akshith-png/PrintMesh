@@ -44,7 +44,7 @@ export async function DELETE(
   if (error)
     return NextResponse.json(
       {
-        error: "Could not delete store. Archive it instead if it has history.",
+        error: `Could not delete store: ${error.message}`,
       },
       { status: 400 },
     );
