@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BackButton } from "@/components/BackButton";
 
+const errorReactions = ["😒", "🤦‍♂️", "🤦‍♀️", "🤷‍♂️", "🫤"];
+
 export default function MerchantPrintPage() {
   const params = useParams<{ merchantId: string }>();
   const router = useRouter();
@@ -16,12 +18,13 @@ export default function MerchantPrintPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState(false);
+  const [errorReaction, setErrorReaction] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!file) { setMessageError(true); setMessage("Choose a PDF first."); return; }
+    if (!file) { setMessageError(true); setErrorReaction(errorReactions[(errorReactions.indexOf(errorReaction) + 1) % errorReactions.length]); setMessage("Choose a file first."); return; }
     setBusy(true); setMessageError(false); setMessage("");
     const form = new FormData();
     form.append("file", file);
@@ -40,7 +43,7 @@ export default function MerchantPrintPage() {
       }
       else { setMessageError(false); setMessage(data.message ?? "PDF validated."); }
     } catch (error) {
-      setMessageError(true); setMessage(error instanceof Error ? error.message : "Could not submit print job.");
+      setMessageError(true); setErrorReaction(errorReactions[(errorReactions.indexOf(errorReaction) + 1) % errorReactions.length]); setMessage(error instanceof Error ? error.message : "Could not submit print job.");
     } finally { setBusy(false); }
   }
 
@@ -61,7 +64,7 @@ export default function MerchantPrintPage() {
           </div>
           <label className="check"><input type="checkbox" checked={duplex} onChange={(e) => setDuplex(e.target.checked)} /> Double-sided</label>
           <button disabled={busy || submitted}>{busy ? "Sending to store..." : submitted ? "Print job accepted" : "Submit print job"}</button>
-          {message && <p className={messageError ? "error" : "message"} role={messageError ? "alert" : undefined}>{messageError ? `Error: ${message}` : message}</p>}
+          {message && <p className={messageError ? "error" : "message"} role={messageError ? "alert" : undefined}>{messageError && <span className="error-reaction" aria-hidden="true">{errorReaction}</span>}{messageError ? `Error: ${message}` : message}</p>}
         </form>
         {submitted && <div className="print-confirm" role="status"><div className="printer-animation"><span className="paper-sheet" /></div><strong>Your document is on its way</strong><span>Opening live tracking…</span></div>}
       </section>
