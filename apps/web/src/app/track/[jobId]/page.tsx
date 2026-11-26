@@ -12,7 +12,7 @@ export default function TrackPage() {
   const params = useParams<{ jobId: string }>();
   const [data, setData] = useState<JobData | null>(null);
   const [error, setError] = useState("");
-  const [cancelSeconds, setCancelSeconds] = useState(5);
+  const [cancelSeconds, setCancelSeconds] = useState(14);
   const [cancelled, setCancelled] = useState(false);
 
   const load = useCallback(async () => {
