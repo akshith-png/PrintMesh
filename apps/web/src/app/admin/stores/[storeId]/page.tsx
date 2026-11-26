@@ -27,7 +27,7 @@ export default async function StorePage({
     store = fallback.data as typeof store;
   }
   if (!store) notFound();
-  const displayImage = store.image_url ? admin.storage.from("store-images").getPublicUrl(storagePath(store.image_url)).data.publicUrl : "";
+  const displayImage = store.image_url ? `/api/store-images/${storagePath(store.image_url)}` : "";
   const { data: assignment } = await admin
     .from("merchant_users")
     .select("auth_user_id")

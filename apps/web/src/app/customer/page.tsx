@@ -17,8 +17,7 @@ export default async function CustomerDashboard() {
   }
   stores = await Promise.all((stores ?? []).map(async (store) => {
     if (!store.image_url) return store;
-    const publicUrl = db.storage.from("store-images").getPublicUrl(storagePath(store.image_url)).data.publicUrl;
-    return { ...store, image_url: publicUrl };
+    return { ...store, image_url: `/api/store-images/${storagePath(store.image_url)}` };
   }));
   return (
     <main className="page-shell customer-directory">
