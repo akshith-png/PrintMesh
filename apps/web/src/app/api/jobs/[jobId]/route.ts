@@ -37,7 +37,7 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
     .select("original_filename,size_bytes,mime_type")
     .eq("job_id", job.id)
     .limit(1);
-  (job as any).print_files = printFiles ?? [];
+  const jobWithFiles = { ...job, print_files: printFiles ?? [] };
 
   const { data: events } = await supabase
     .from("print_job_events")
@@ -45,5 +45,5 @@ export async function GET(_request: Request, context: { params: Promise<{ jobId:
     .eq("job_id", job.id)
     .order("created_at", { ascending: true });
 
-  return NextResponse.json({ job, events: events ?? [] });
+  return NextResponse.json({ job: jobWithFiles, events: events ?? [] });
 }
