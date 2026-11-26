@@ -17,8 +17,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ sto
   const path = `${store.id}/${crypto.randomUUID()}.${extension}`;
   const upload = await db.storage.from("store-images").upload(path, file, { contentType: file.type, upsert: false });
   if (upload.error) return NextResponse.json({ error: `Image upload failed: ${upload.error.message}` }, { status: 502 });
-  const { data: url } = db.storage.from("store-images").getPublicUrl(path);
-  const { error } = await db.from("merchants").update({ image_url: url.publicUrl }).eq("id", store.id);
+  const { data: url } = await db.storage.from("store-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+  if (!url?.signedUrl) return NextResponse.json({ error: "Image uploaded but could not create a display URL." }, { status: 502 });
+  const { error } = await db.from("merchants").update({ image_url: path }).eq("id", store.id);
   if (error) return NextResponse.json({ error: `Image record update failed: ${error.message}` }, { status: 400 });
-  return NextResponse.json({ imageUrl: url.publicUrl });
+  return NextResponse.json({ imageUrl: url.signedUrl });
 }

@@ -14,6 +14,11 @@ export default async function CustomerDashboard() {
       .order("name");
     stores = fallback.data as typeof stores;
   }
+  stores = await Promise.all((stores ?? []).map(async (store) => {
+    if (!store.image_url || store.image_url.startsWith("http")) return store;
+    const signed = await db.storage.from("store-images").createSignedUrl(store.image_url, 60 * 60 * 24);
+    return { ...store, image_url: signed.data?.signedUrl ?? null };
+  }));
   return (
     <main className="page-shell customer-directory">
       <nav className="topbar">
