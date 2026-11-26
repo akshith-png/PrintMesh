@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AgentEnrollmentPanel } from "./AgentEnrollmentPanel";
 import { PrinterSetupPanel } from "./PrinterSetupPanel";
 import QRCode from "qrcode";
+import { headers } from "next/headers";
 import { MerchantAvailabilityForm } from "./MerchantAvailabilityForm";
 import { MerchantLogoutButton } from "./MerchantLogoutButton";
 
@@ -92,7 +93,10 @@ export default async function MerchantDashboardPage() {
 
   const printing = jobRows.filter((job) => job.status === "PRINTING").length;
   const completed = jobRows.filter((job) => job.status === "COMPLETED").length;
-  const publicUrl = `${process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/s/${membership.merchant_id}`;
+  const requestHeaders = await headers();
+  const requestOrigin = `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000"}`;
+  const appOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_BASE_URL ?? requestOrigin;
+  const publicUrl = `${appOrigin.replace(/\/$/, "")}/s/${merchant?.public_id ?? membership.merchant_id}`;
   const qrDataUrl = await QRCode.toDataURL(publicUrl, { width: 220, margin: 1 });
 
   return (
