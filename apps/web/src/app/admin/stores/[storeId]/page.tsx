@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireOwner } from "@/lib/owner-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { StoreStatusForm } from "./StoreStatusForm";
+import { ArchiveStoreButton } from "./ArchiveStoreButton";
 function storagePath(value: string) { const marker = "/store-images/"; const index = value.indexOf(marker); return index >= 0 ? decodeURIComponent(value.slice(index + marker.length).split("?")[0]) : value; }
 export default async function StorePage({
   params,
@@ -15,13 +16,13 @@ export default async function StorePage({
   const admin = createSupabaseAdminClient();
   let { data: store } = await admin
     .from("merchants")
-    .select("id,public_id,name,address,phone,image_url,status,created_at")
+    .select("id,public_id,name,address,phone,image_url,status,lifecycle_status,created_at")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) {
     const fallback = await admin
       .from("merchants")
-      .select("id,public_id,name,address,phone,status,created_at")
+      .select("id,public_id,name,address,phone,status,lifecycle_status,created_at")
       .eq("id", storeId)
       .maybeSingle();
     store = fallback.data as typeof store;
@@ -82,6 +83,7 @@ export default async function StorePage({
           currentImageUrl={displayImage}
           currentMerchantEmail={merchantEmail}
         />
+        <ArchiveStoreButton storeId={store.id} archived={store.lifecycle_status === "ARCHIVED"} />
       </section>
       <section className="card">
         <p className="eyebrow">AUDIT HISTORY</p>

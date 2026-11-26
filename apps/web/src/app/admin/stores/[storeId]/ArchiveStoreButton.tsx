@@ -1,0 +1,3 @@
+"use client";
+import { useRouter } from "next/navigation";
+export function ArchiveStoreButton({storeId,archived}:{storeId:string;archived:boolean}){const router=useRouter();async function run(){const reason=window.prompt(`Reason for ${archived?"unarchiving":"archiving"} this store:`);if(!reason?.trim())return;const r=await fetch(`/api/admin/stores/${storeId}`,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({lifecycle:archived?"ACTIVE":"ARCHIVED",reason})});if(r.ok)router.refresh();}return <button type="button" onClick={run}>{archived?"Unarchive store":"Archive store"}</button>}
