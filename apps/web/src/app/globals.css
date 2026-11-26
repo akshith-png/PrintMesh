@@ -40,5 +40,6 @@ code{background:#eee;padding:3px 6px;border-radius:5px}
 
 .store-emoji{display:block;font-size:4.5rem;line-height:1;margin-bottom:1rem}.store-cover{min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
 .pdf-fallback{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#16233d;text-align:center}.pdf-fallback span{font-weight:600}.pdf-fallback small{color:#667085;max-width:420px}
+.danger-button{background:#dc3d55;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}.danger-button:disabled{opacity:.6;cursor:not-allowed}
 
 .error{display:flex;align-items:center;gap:.65rem;color:#c62828;font-size:1.125rem;font-weight:700}.error-reaction{font-size:4.5rem;line-height:1;display:inline-block}
