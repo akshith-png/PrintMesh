@@ -46,7 +46,7 @@ export default function TrackPage() {
     setCancelled(true); await load();
   }
 
-  if (error) return <main className="shell"><section className="card"><h1>Print job</h1><p className="message">{error}</p></section></main>;
+  if (error) return <main className="shell"><section className="card"><h1>Print job</h1><p className="error" role="alert">Error: {error}</p></section></main>;
   if (!data) return <main className="shell"><section className="card"><h1>Loading print job...</h1></section></main>;
 
   const file = Array.isArray(data.job.print_files) ? data.job.print_files[0] : data.job.print_files;

@@ -15,13 +15,14 @@ export default function MerchantPrintPage() {
   const [paperSize, setPaperSize] = useState("A4");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageError, setMessageError] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!file) { setMessage("Choose a PDF first."); return; }
-    setBusy(true); setMessage("");
+    if (!file) { setMessageError(true); setMessage("Choose a PDF first."); return; }
+    setBusy(true); setMessageError(false); setMessage("");
     const form = new FormData();
     form.append("file", file);
     form.append("merchantId", params.merchantId);
@@ -37,9 +38,9 @@ export default function MerchantPrintPage() {
         setSubmitted(true);
         window.setTimeout(() => router.push(`/track/${data.jobId}`), 1400);
       }
-      else setMessage(data.message ?? "PDF validated.");
+      else { setMessageError(false); setMessage(data.message ?? "PDF validated."); }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not submit print job.");
+      setMessageError(true); setMessage(error instanceof Error ? error.message : "Could not submit print job.");
     } finally { setBusy(false); }
   }
 
@@ -60,7 +61,7 @@ export default function MerchantPrintPage() {
           </div>
           <label className="check"><input type="checkbox" checked={duplex} onChange={(e) => setDuplex(e.target.checked)} /> Double-sided</label>
           <button disabled={busy || submitted}>{busy ? "Sending to store..." : submitted ? "Print job accepted" : "Submit print job"}</button>
-          {message && <p className="message">{message}</p>}
+          {message && <p className={messageError ? "error" : "message"} role={messageError ? "alert" : undefined}>{messageError ? `Error: ${message}` : message}</p>}
         </form>
         {submitted && <div className="print-confirm" role="status"><div className="printer-animation"><span className="paper-sheet" /></div><strong>Your document is on its way</strong><span>Opening live tracking…</span></div>}
       </section>
