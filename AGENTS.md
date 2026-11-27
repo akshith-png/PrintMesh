@@ -92,7 +92,22 @@ The next major phase improves PrintMesh's customer and merchant experience while
 - Tracking: live status, timeline, five-second/14-second cancellation window, cancellation status.
 - Supabase Auth, Storage, database migrations, same-origin image proxy, and Windows agent integration.
 
-### Priority order after beta
+### Revised implementation order (simple pre-beta features first)
+
+The user has authorized implementing non-AI Svindo-style basics before public beta. Keep the current working flows intact and deliver one checkpoint at a time.
+
+0. **Orientation and sheet-aware preview:** portrait/landscape control, preview layout, selected paper size and orientation carried into the job record and downstream settings.
+1. **Customer upload sources:** guided file-source choices, drag/drop, queue/remove/reorder while preserving the existing file input fallback.
+2. **Preview/page basics:** reliable PDF/image preview, page navigation, page selection, per-file settings, and clear totals.
+3. **Order review:** summary of files, pages, copies, paper, color, duplex, orientation, and confirmation before submission.
+4. **Merchant queue polish:** clearer job cards, details, printer/agent health, and responsive layout.
+5. **Owner operations polish:** search/filter/sort stores, archive-first deletion guidance, audit details, image management.
+6. **Pricing/payments:** configurable pricing, tax display, counter-payment placeholder, provider integration later.
+7. **Privacy/retention:** upload notice, temporary-file lifecycle, purge status, and access controls.
+8. **PWA/mobile kiosk:** installable flow, camera/mobile improvements, accessibility/touch review.
+9. **AI Print Assistant (later):** clarity/crop/rotation/contrast/blank-page analysis with corrected preview and safe fallback.
+
+### Original post-beta priority reference
 
 1. **Customer flow foundation:** guided upload stepper, file-type cards, drag/drop, camera/gallery/file-source choices, document queue, remove/reorder files.
 2. **Preview and page controls:** reliable PDF/image page previews, page navigation, page ranges/custom selection, per-file settings, clear totals.
