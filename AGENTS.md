@@ -62,3 +62,47 @@ Append a row to the progress log:
 
 `YYYY-MM-DD | AI/name + commit | changed files/behavior; tests; user verification needed; remaining work`
 
+## Post-beta product roadmap (planned; do not implement until beta sign-off)
+
+The next major phase improves PrintMesh's customer and merchant experience while preserving the current working beta. Use original PrintMesh branding, copy, colors, icons, and layout decisions; do not clone Svindo's exact visual design, text, assets, or interaction styling.
+
+### Reference capabilities observed in the Svindo demo
+
+- Guided kiosk-style upload flow.
+- Camera scan, gallery/photo upload, PDF documents, and general file picker.
+- Quick uniform settings or per-file settings.
+- Paper-size selection with unavailable options explained.
+- Page preview, page navigation, and custom page selection.
+- Copies controls with clear document/page totals.
+- B&W/color and single/double-sided controls.
+- Order summary before submission.
+- Pricing breakdown, tax/GST details, and total payable.
+- Online payment and pay-at-counter choices.
+- Optional customer name/mobile capture.
+- Sample/demo document for testing.
+- PWA/install prompt and mobile-first kiosk presentation.
+- Privacy messaging and automatic temporary-file cleanup.
+- Customer orders/history surface.
+
+### PrintMesh capabilities to preserve
+
+- Owner portal: authenticated store management, store images, lifecycle, archive/unarchive, delete where safe, audit history.
+- Merchant portal: dashboard, availability toggle, password change, logout, printer discovery/selection, QR/customer link.
+- Customer portal: store directory, store images, file upload, preview, B&W/color, paper size, copies, duplex, print submission.
+- Tracking: live status, timeline, five-second/14-second cancellation window, cancellation status.
+- Supabase Auth, Storage, database migrations, same-origin image proxy, and Windows agent integration.
+
+### Priority order after beta
+
+1. **Customer flow foundation:** guided upload stepper, file-type cards, drag/drop, camera/gallery/file-source choices, document queue, remove/reorder files.
+2. **Preview and page controls:** reliable PDF/image page previews, page navigation, page ranges/custom selection, per-file settings, clear totals.
+3. **Order review:** final summary of files, pages, copies, paper, color, duplex, estimated turnaround, and confirmation before submission.
+4. **Merchant operations polish:** improved dashboard hierarchy, job queue cards, job detail actions, printer/agent health, clearer availability state, responsive mobile layout.
+5. **Owner operations polish:** dashboard metrics, search/filter/sort stores, archive-first deletion guidance, audit detail drawer, image management.
+6. **Payments and pricing:** configurable owner pricing, tax display, pay-at-counter placeholder, payment provider integration only after legal/operational review.
+7. **Privacy and retention:** explicit upload notice, temporary-file lifecycle, purge status, download/access controls, retention configuration.
+8. **PWA/mobile kiosk:** installable customer experience, offline-safe shell, mobile camera flow, accessibility and touch-target review.
+9. **AI Print Assistant (later, separate service):** clarity/crop/rotation/contrast/blank-page analysis, corrected preview, accept/reject corrections, safe fallback to original file.
+
+Each item must be implemented as a separate checkpoint, tested, committed, pushed, and added to this roadmap's progress log before starting the next item.
+
